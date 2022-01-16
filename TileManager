@@ -1,0 +1,109 @@
+package Tile;
+import ZasobyGraficzne.Gracz;
+import Wejscia.Vector2f;
+import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.io.File;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+
+public class TileManager {
+
+    public static ArrayList<TileMap> tm;
+
+    public TileManager(){
+        tm = new ArrayList<TileMap>();
+    }
+
+    public TileManager(String path){
+        tm = new ArrayList<TileMap>();
+        addTileMap(path,64,64);
+
+    }
+
+    private void addTileMap(String path, int blockWidth, int blockHeight){
+        String imagePath;
+
+        int width = 0;
+        int height = 0;
+        int tileWidth;
+        int tileHeight;
+        int tileCount;
+        int tileColumns;
+        int tileRows;
+        int layers = 0;
+        Gracz zarys;
+
+        String[] data = new String[10];
+
+        try {
+            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            Document doc = builder.parse(new File(getClass().getClassLoader().getResource(path).toURI()));
+            System.out.println("1 ");
+            doc.getDocumentElement().normalize();
+            System.out.println("2 ");
+
+            NodeList list = doc.getElementsByTagName("tileset");
+            Node node = list.item(0);
+            Element eElement = (Element) node;
+            System.out.println("3 ");
+
+            imagePath = eElement.getAttribute("name");
+            System.out.println("4 ");
+            tileWidth = Integer.parseInt(eElement.getAttribute("tilewidth"));
+            System.out.println("5 ");
+            tileHeight = Integer.parseInt(eElement.getAttribute("tileheight"));
+            System.out.println("6 ");
+            tileCount = Integer.parseInt(eElement.getAttribute("tilecount"));
+            System.out.println("7 ");
+           tileColumns = Integer.parseInt(eElement.getAttribute("columns"));
+           // tileRows = Integer.parseInt(eElement.getAttribute("tilerows"));
+            System.out.println("1 ");
+
+            list = doc.getElementsByTagName("layer");
+            System.out.println("8");
+            layers = list.getLength();
+            System.out.println("9");
+            zarys = new Gracz( imagePath +".png",tileWidth,tileHeight, false);
+            System.out.println("10");
+            for(int i = 0;i<layers;i++){
+                node = list.item(i);
+                eElement = (Element) node;
+                if(i<=0){
+                    width = Integer.parseInt(eElement.getAttribute("width"));
+                    height = Integer.parseInt(eElement.getAttribute("height"));
+
+                }
+                System.out.println("1");
+
+                data[i] = eElement.getElementsByTagName("data").item(0).getTextContent();
+                System.out.println("------------\n" + data[i]);
+                if (i  <= 0 ){
+                    tm.add(new TileMapNorm( data[i], zarys, width, height, blockWidth, blockHeight, tileColumns));}
+                else{
+                    tm.add(new TileMapObj( data[i], zarys, width, height, blockWidth, blockHeight, tileColumns));
+               }
+                System.out.println("2");
+
+            }
+        }
+        catch(Exception e){
+            System.out.println("Error - TILEMANAGER: can not read Tilemap");
+        }
+    }
+
+    public void render(Graphics2D g){
+        for (int i = 0;i <tm.size(); i++){
+            tm.get(i).render(g);
+        }
+    }
+
+}
